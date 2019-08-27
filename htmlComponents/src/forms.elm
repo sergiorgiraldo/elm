@@ -10,7 +10,7 @@
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput)
+import Html.Events exposing (onInput, onClick)
 import ParseInt exposing (..) 
 import Regex exposing (..) 
 import Parser exposing (..) 
@@ -27,12 +27,13 @@ type alias Model =
   , age : Int
   , password : String
   , passwordAgain : String
+  , error : String
   }
 
 
 init : Model
 init =
-  Model "" 0 "" ""
+  Model "" 0 "" "" ""
 
 -- UPDATE
 
@@ -41,6 +42,7 @@ type Msg
   | Age String
   | Password String
   | PasswordAgain String
+  | Error
 
 update : Msg -> Model -> Model
 update msg model =
@@ -57,15 +59,42 @@ update msg model =
     PasswordAgain password ->
       { model | passwordAgain = password }
 
+    Error ->
+      { model | error = "Not implemented yet." }
+
 -- VIEW
+
+-- VALIDATIONS
+
+passwordsMatch: Model -> Bool
+passwordsMatch model =
+  model.password == model.passwordAgain
+
+passwordLongerThanOrEqual8: Model -> Bool
+passwordLongerThanOrEqual8 model =
+  String.length model.password >= 8
+
+isAllTrue : List Bool -> Bool
+isAllTrue bs =
+    List.length (List.filter (\b -> b) bs) == List.length bs
+
+allValidationPassword : Model -> Bool
+allValidationPassword model =
+    isAllTrue
+        [ passwordsMatch model
+        , passwordLongerThanOrEqual8 model
+        ]
+
 
 view : Model -> Html Msg
 view model =
   div []
     [ viewInput "text" "Name" model.name Name
-    , viewInput "numeric" "Age" (String.fromInt model.age) Age
+    , viewInput "number" "Age" (String.fromInt model.age) Age
     , viewInput "password" "Password" model.password Password
     , viewInput "password" "Re-enter Password" model.passwordAgain PasswordAgain
+    , button [ onClick Error ] [ text "submit" ]
+    , div [] [ text model.error ]    
     , viewValidation model
     ]
 
@@ -76,10 +105,7 @@ viewInput t p v toMsg =
 
 viewValidation : Model -> Html msg
 viewValidation model =
-  if model.password == model.passwordAgain then
-    if String.length model.password < 8 then
-      div [ style "color" "red" ] [ text "Passwords must be greater than 8!" ]
+    if allValidationPassword model then
+        div [ style "color" "green" ] [ text "OK" ]
     else
-      div [ style "color" "green" ] [ text "OK" ]
-  else
-    div [ style "color" "red" ] [ text "Passwords do not match!" ]
+        div [ style "color" "red" ] [ text "Fix your Passwords!" ]
