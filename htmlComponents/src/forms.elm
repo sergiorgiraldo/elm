@@ -25,6 +25,7 @@ main =
 type alias Model =
   { name : String
   , age : Int
+  , somenumber : String 
   , password : String
   , passwordAgain : String
   , error : String
@@ -33,13 +34,14 @@ type alias Model =
 
 init : Model
 init =
-  Model "" 0 "" "" ""
+  Model "" 0 "" "" "" ""
 
 -- UPDATE
 
 type Msg
   = Name String
   | Age String
+  | SomeNumber String
   | Password String
   | PasswordAgain String
   | Error
@@ -52,6 +54,9 @@ update msg model =
 
     Age age ->
       { model | age = String.toInt age |> Maybe.withDefault 0}
+
+    SomeNumber somenumber ->
+      { model | somenumber = somenumber }
 
     Password password ->
       { model | password = password }
@@ -74,6 +79,15 @@ passwordLongerThanOrEqual8: Model -> Bool
 passwordLongerThanOrEqual8 model =
   String.length model.password >= 8
 
+digits : Regex.Regex
+digits =
+  Maybe.withDefault Regex.never <|
+    Regex.fromString "^[0-9]+$"
+
+someNumberMustBeNumeric: Model -> Bool
+someNumberMustBeNumeric model =
+  Regex.contains digits model.somenumber
+
 isAllTrue : List Bool -> Bool
 isAllTrue bs =
     List.length (List.filter (\b -> b) bs) == List.length bs
@@ -91,6 +105,7 @@ view model =
   div []
     [ viewInput "text" "Name" model.name Name
     , viewInput "number" "Age" (String.fromInt model.age) Age
+    , viewInput "somenumber" "SomeNumber" model.somenumber SomeNumber
     , viewInput "password" "Password" model.password Password
     , viewInput "password" "Re-enter Password" model.passwordAgain PasswordAgain
     , button [ onClick Error ] [ text "submit" ]
@@ -106,6 +121,9 @@ viewInput t p v toMsg =
 viewValidation : Model -> Html msg
 viewValidation model =
     if allValidationPassword model then
+      if someNumberMustBeNumeric model then
         div [ style "color" "green" ] [ text "OK" ]
+      else
+        div [ style "color" "red" ] [ text "Fix your number!" ]
     else
-        div [ style "color" "red" ] [ text "Fix your Passwords!" ]
+      div [ style "color" "red" ] [ text "Fix your Passwords!" ]
