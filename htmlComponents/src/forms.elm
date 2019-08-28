@@ -124,6 +124,6 @@ viewValidation model =
       if someNumberMustBeNumeric model then
         div [ style "color" "green" ] [ text "OK" ]
       else
-        div [ style "color" "red" ] [ text "Fix your number!" ]
+        div [ style "color" "red" ] [ text "Fix your Number!" ]
     else
       div [ style "color" "red" ] [ text "Fix your Passwords!" ]
